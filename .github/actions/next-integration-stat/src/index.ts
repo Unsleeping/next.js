@@ -34,6 +34,8 @@ async function findNextJsVersionFromBuildLogs(
       job_id: job.id,
     })
 
+  console.log('Trying to get logs from redirct url ', jobLogRedirectResponse.url)
+
   // fetch the actual logs
   const jobLogsResponse = await nodeFetch(jobLogRedirectResponse.url, {
     headers: {
@@ -42,9 +44,11 @@ async function findNextJsVersionFromBuildLogs(
   })
 
   if (!jobLogsResponse.ok) {
-    throw new Error(
+    console.error(
       `Failed to get logsUrl, got status ${jobLogsResponse.status}`
     )
+
+    return 'unknown'
   }
 
   // this should be the check_run's raw logs including each line
@@ -235,7 +239,7 @@ async function getJobResults(
   const buildTimeMatch = (
     nextSwcBuildLogs.find((line) => line.includes('Time (abs ≡):')) ?? ''
   ).match(/  ([+-]?(?=\.\d|\d)(?:\d+)?(?:\.?\d*))(?:[Ee]([+-]?\d+))? s/)
-  const buildTime = buildTimeMatch.length >= 2 ? buildTimeMatch[1] : undefined
+  const buildTime = buildTimeMatch?.length >= 2 ? buildTimeMatch[1] : undefined
   const nextSwcBuildSize = (
     nextSwcBuildLogs.find(
       (line) =>
